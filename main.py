@@ -6,19 +6,7 @@ def talk_to_villager(question):
 
 
 def talk_to_guard(question):
-    prompt = (
-        "You are a cautious town guard. Keep answers short and mention safety.\nQuestion: "
-    )
-    return chat(prompt + question)
-
-
-def talk_to_wizard(question):
-    prompt = "You are an old wizard in a tower. Speak mysteriously with riddles.\nQuestion: "
-    return chat(prompt + question)
-
-
-def talk_to_merchant(question):
-    prompt = "You are a friendly traveling merchant. Talk about items and prices.\nQuestion: "
+    prompt = "You are a cautious town guard. Keep answers short and mention safety.\nQuestion: "    
     return chat(prompt + question)
 
 
@@ -32,17 +20,15 @@ Player input: """
     result = chat(classifier_prompt + user_text)
 
     # Students use string methods to clean up the LLM's raw output
-    clean_result = result.strip().lower().split()[-1]  
+    clean_result = result.strip().lower()
 
     # Determine the intent using basic membership (in) or equality
-    if "guard" in clean_result:
-        return "guard"
-    elif "wizard" in clean_result:
-        return "wizard"
-    elif "merchant" in clean_result:
-        return "merchant"
-    else:
+    if "villager" in clean_result:
         return "villager"
+    elif "guard" in clean_result:
+        return "guard"
+    else:
+        return None
 
 
 print("Welcome to the AI Village! Type 'exit' or 'quit' to leave.")
@@ -61,10 +47,6 @@ while True:
     # 2. Routing logic implemented directly in main using if/elif
     if target == "guard":
         response = talk_to_guard(user_input)
-    elif target == "wizard":
-        response = talk_to_wizard(user_input)
-    elif target == "merchant":
-        response = talk_to_merchant(user_input)
     else:
         response = talk_to_villager(user_input)
 
