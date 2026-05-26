@@ -40,7 +40,7 @@ def complete(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40, stop
                  )
     return result['choices'][0]['text'].strip()
 
-def chat(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
+def chat_no_output(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
     if llm is None:
         #raise RuntimeError("LLM not initialized (running under testrunner).")
         return "<think>\nsimulated thinking\n</think>\nguard"
@@ -53,6 +53,53 @@ def chat(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
                                         top_p=top_p, 
                                         top_k=top_k)    
     return result['choices'][0]['message']['content'].strip()
+
+def chat(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
+    if llm is None:
+        return "<think>\nsimulated thinking\n</think>\nguard"
+
+    if type(prompt) is not list:
+        prompt = [{"role": "user", "content": prompt}]
+        
+    # Call create_chat_completion with stream=True
+    response_stream = llm.create_chat_completion(
+        prompt, 
+        max_tokens=max_tokens, 
+        temperature=temperature, 
+        top_p=top_p, 
+        top_k=top_k,
+        stream=True # <--- Enables token-by-token generation
+    )    
+
+    full_text = ""
+    indicator = "[AI is generating...] "
+    
+    # 1. Print the loading indicator
+    sys.stdout.write(indicator)
+    sys.stdout.flush()
+
+    # 2. Consume the stream and display tokens live
+    for chunk in response_stream:
+        # Structure for streaming chunks inside llama-cpp-python
+        if 'choices' in chunk and len(chunk['choices']) > 0:
+            delta = chunk['choices'][0].get('delta', {})
+            token = delta.get('content', '')
+            
+            if token:
+                full_text += token
+                sys.stdout.write(token)
+                sys.stdout.flush()
+
+    # 3. Erase the stream from the console window
+    # Total length of characters printed on this exact line
+    total_length = len(indicator) + len(full_text)
+    
+    # Send cursor to front (\r), write spaces over the text, send cursor back (\r)
+    sys.stdout.write("\r" + " " * total_length + "\r")
+    sys.stdout.flush()
+
+    # 4. Clean up trailing spaces and return the pristine string
+    return full_text.strip()
 
 def get_top_tokens(prompt, n=10):
     """
