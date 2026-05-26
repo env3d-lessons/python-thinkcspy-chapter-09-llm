@@ -9,7 +9,7 @@
         "ms-python.vscode-pylance"
       ],
       "settings": {
-        "chat.disableAIFeatures": true,
+        // "chat.disableAIFeatures": true,
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "extensions.ignoreRecommendations": true
       }
