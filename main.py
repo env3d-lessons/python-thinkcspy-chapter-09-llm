@@ -1,97 +1,72 @@
 from chat import chat
 
-
-def villager(question):
-    character = """You are an NPC in a video game.
-A farmer living in a village.
-When the player asks a question, respond with variations of "Good day."
-Here is the player's question:
-"""
-
-    return chat(character + question)
+def talk_to_villager(question):
+    prompt = "You are a village farmer. Respond with variations of 'Good day.'\nQuestion: "
+    return chat(prompt + question)
 
 
-def guard(question):
-    character = """You are an NPC in a video game.
-A town guard at the village gate.
-You are direct, cautious, and protective.
-Keep answers short and mention safety or rules when relevant.
-Here is the player's question:
-"""
-
-    return chat(character + question)
+def talk_to_guard(question):
+    prompt = (
+        "You are a cautious town guard. Keep answers short and mention safety.\nQuestion: "
+    )
+    return chat(prompt + question)
 
 
-def wizard(question):
-    character = """You are an NPC in a video game.
-An old wizard in a tower.
-You speak mysteriously, with hints and riddles.
-Keep answers concise and magical in tone.
-Here is the player's question:
-"""
-
-    return chat(character + question)
+def talk_to_wizard(question):
+    prompt = "You are an old wizard in a tower. Speak mysteriously with riddles.\nQuestion: "
+    return chat(prompt + question)
 
 
-def merchant(question):
-    character = """You are an NPC in a video game.
-A traveling merchant.
-You are friendly, practical, and often talk about items, prices, or trades.
-Keep responses short.
-Here is the player's question:
-"""
-
-    return chat(character + question)
-
-
-characters = {
-    "villager": villager,
-    "guard": guard,
-    "wizard": wizard,
-    "merchant": merchant,
-}
+def talk_to_merchant(question):
+    prompt = "You are a friendly traveling merchant. Talk about items and prices.\nQuestion: "
+    return chat(prompt + question)
 
 
 def classify_character(user_text):
-    classifier_prompt = f"""You are an intent classifier for routing player dialog to an NPC.
-Pick exactly one character name from this list:
-villager
-guard
-wizard
-merchant
+    classifier_prompt = """You are an intent classifier for routing player dialog to an NPC.
+Pick exactly one character name from this list: villager, guard, wizard, merchant.
+Return ONLY the single word. If unsure, return villager.
 
-Rules:
-- Return only one word from the list.
-- Do not include punctuation or any extra text.
-- If the intent is unclear, return villager.
+Player input: """
 
-Player input:
-"""
+    result = chat(classifier_prompt + user_text)
 
-    result = chat(
-        classifier_prompt + user_text,
-        # temperature=0.0,
-        # max_tokens=4,
-        # top_p=0.1,
-        # top_k=4,
-    )
-    normalized = result.strip().lower().split()
+    # Students use string methods to clean up the LLM's raw output
+    clean_result = result.strip().lower().split()[-1]  
 
-    print(f"Classifier output: '{normalized}'")
-    
-    for name in characters:
-        if name in normalized[-1]:
-            return name
+    # Determine the intent using basic membership (in) or equality
+    if "guard" in clean_result:
+        return "guard"
+    elif "wizard" in clean_result:
+        return "wizard"
+    elif "merchant" in clean_result:
+        return "merchant"
+    else:
+        return "villager"
 
-    return "villager"
 
-print("Type exit or quit to leave.")
+print("Welcome to the AI Village! Type 'exit' or 'quit' to leave.")
 
 while True:
-    user = input("> ").strip()
+    user_input = input("> ").strip()
 
-    if user.lower() in ["exit", "quit"]:
+    # Standard loop breakout
+    if user_input.lower() in ["exit", "quit"]:
+        print("Goodbye!")
         break
 
-    target = classify_character(user)
-    print(f"[{target}] {characters[target](user)}")
+    # 1. Get the target character string from the classifier
+    target = classify_character(user_input)
+
+    # 2. Routing logic implemented directly in main using if/elif
+    if target == "guard":
+        response = talk_to_guard(user_input)
+    elif target == "wizard":
+        response = talk_to_wizard(user_input)
+    elif target == "merchant":
+        response = talk_to_merchant(user_input)
+    else:
+        response = talk_to_villager(user_input)
+
+    # 3. Output the result
+    print("["+target.upper()+"]: " + response + "\n")
