@@ -1,6 +1,7 @@
 import random
 import math
 import sys, os
+import shutil
 
 # Detect if we're running inside a testrunner and skip heavy model init
 running_under_testrunner = (
@@ -72,30 +73,59 @@ def chat(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
     )    
 
     full_text = ""
-    indicator = "[AI is generating...] "
+    indicator = "\033[2m[AI is generating...] "
+    use_ansi_clear = sys.stdout.isatty()
+    use_stream_style = use_ansi_clear and os.environ.get("NO_COLOR") is None
     
     # 1. Print the loading indicator
     sys.stdout.write(indicator)
     sys.stdout.flush()
 
+    if use_stream_style:
+        # Use a lighter terminal style while tokens stream in.
+        sys.stdout.write("\033[2m")
+        sys.stdout.flush()
+
     # 2. Consume the stream and display tokens live
-    for chunk in response_stream:
-        # Structure for streaming chunks inside llama-cpp-python
-        if 'choices' in chunk and len(chunk['choices']) > 0:
-            delta = chunk['choices'][0].get('delta', {})
-            token = delta.get('content', '')
-            
-            if token:
-                full_text += token
-                sys.stdout.write(token)
-                sys.stdout.flush()
+    try:
+        for chunk in response_stream:
+            # Structure for streaming chunks inside llama-cpp-python
+            if 'choices' in chunk and len(chunk['choices']) > 0:
+                delta = chunk['choices'][0].get('delta', {})
+                token = delta.get('content', '')
+                
+                if token:
+                    full_text += token
+                    sys.stdout.write(token)
+                    sys.stdout.flush()
+    finally:
+        if use_stream_style:
+            # Always reset style, even if stream generation errors out.
+            sys.stdout.write("\033[0m")
+            sys.stdout.flush()
 
     # 3. Erase the stream from the console window
-    # Total length of characters printed on this exact line
-    total_length = len(indicator) + len(full_text)
-    
-    # Send cursor to front (\r), write spaces over the text, send cursor back (\r)
-    sys.stdout.write("\r" + " " * total_length + "\r")
+    if use_ansi_clear:
+        # Clear every rendered line (including soft-wrapped lines) from bottom to top.
+        cols = max(1, shutil.get_terminal_size(fallback=(80, 24)).columns)
+        rendered = indicator + full_text
+
+        lines_to_clear = 0
+        for segment in rendered.split("\n"):
+            # Each segment occupies at least one terminal row.
+            lines_to_clear += max(1, (len(segment) + cols - 1) // cols)
+
+        # Start on the current line, then clear upward line-by-line.
+        sys.stdout.write("\r")
+        for i in range(lines_to_clear):
+            sys.stdout.write("\033[2K")
+            if i < lines_to_clear - 1:
+                sys.stdout.write("\033[1A\r")
+        sys.stdout.write("\r")
+    else:
+        # Fallback for non-interactive output: best effort single-line clear.
+        total_length = len(indicator) + len(full_text)
+        sys.stdout.write("\r" + " " * total_length + "\r")
     sys.stdout.flush()
 
     # 4. Clean up trailing spaces and return the pristine string
