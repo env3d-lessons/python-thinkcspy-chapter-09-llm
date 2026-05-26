@@ -43,7 +43,7 @@ def complete(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40, stop
 def chat(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
     if llm is None:
         #raise RuntimeError("LLM not initialized (running under testrunner).")
-        return ""
+        return "<think>\nsimulated thinking\n</think>\nguard"
     
     if type(prompt) is not list:
         prompt = [{"role": "user", "content": prompt}]
