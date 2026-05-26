@@ -28,7 +28,7 @@ export LD_LIBRARY_PATH=$DEV_PATH:$LD_LIBRARY_PATH
 echo "⏳ Installing inference engine (llama-cpp-python)..."
 export CMAKE_ARGS="-DLLAMA_BUILD=OFF"
 pip install -q --upgrade pip
-pip install -q llama-cpp-python==0.3.10
+pip install -q llama-cpp-python==0.3.23
 echo "✅ Inference engine installed."
 
 # Download model
