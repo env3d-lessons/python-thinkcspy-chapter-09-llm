@@ -17,7 +17,7 @@ if not running_under_testrunner:
     sys.stderr = open(os.devnull, 'w')
 
     llm = Llama(
-          model_path="./qwen2.5-0.5b-instruct-q4_k_m.gguf",
+          model_path="./model.gguf",
           # n_gpu_layers=-1, # Uncomment to use GPU acceleration
           seed=random.randint(0, 2**31-1),
           #n_ctx=32768, # Uncomment to increase the context window
@@ -51,7 +51,7 @@ def chat(prompt, temperature=0.7, max_tokens=1024, top_p=0.9, top_k=40):
                                         max_tokens=max_tokens, 
                                         temperature=temperature, 
                                         top_p=top_p, 
-                                        top_k=top_k)
+                                        top_k=top_k)    
     return result['choices'][0]['message']['content'].strip()
 
 def get_top_tokens(prompt, n=10):

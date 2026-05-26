@@ -1,7 +1,7 @@
 #!/bin/bash
 
 DEV_PATH="/workspaces/$(basename $(pwd))/.devcontainer"
-MODEL_FILE="/workspaces/$(basename $(pwd))/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+MODEL_FILE="/workspaces/$(basename $(pwd))/model.gguf"
 
 # Check if model file already exists
 if [ -f "$MODEL_FILE" ]; then
@@ -33,7 +33,7 @@ echo "✅ Inference engine installed."
 
 # Download model
 echo "⏳ Downloading model..."
-wget -q -O "$MODEL_FILE" https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf
+wget -q -O "$MODEL_FILE" https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf
 echo "✅ Model downloaded."
 
 echo ""
